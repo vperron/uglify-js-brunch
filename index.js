@@ -1,5 +1,6 @@
 var sysPath = require('path');
 var uglify = require('uglify-js');
+var annotate = require('ng-annotate')
 
 var extend = function(object, source) {
   var value;
@@ -50,7 +51,15 @@ UglifyJSOptimizer.prototype.optimize = function(args, callback) {
     path + '.map' : undefined;
 
   try {
-    optimized = uglify.minify(data, this.options);
+    annotated = annotate(data, {add: true})
+  } catch (_error) {
+    error = 'JS annotation failed : ' + _error;
+  } finally {
+    if (error) return callback(error);
+  }
+
+  try {
+    optimized = uglify.minify(annotated.src, this.options);
   } catch (_error) {
     error = 'JS minification failed on ' + path + ': ' + _error;
   } finally {
